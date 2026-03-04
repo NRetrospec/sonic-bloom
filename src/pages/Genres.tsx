@@ -1,9 +1,10 @@
-import { ArrowRight, Play, Pause } from "lucide-react";
-import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import VerticalNav from "@/components/layout/VerticalNav";
+import PageLayout from "@/components/layout/PageLayout";
 import BeatCard from "@/components/beats/BeatCard";
+import { mockBeats } from "@/lib/mockData";
+import { usePlayer } from "@/context/PlayerContext";
 
 const genres = [
   { name: "Trap", count: 124, description: "Hard-hitting 808s and aggressive hi-hats" },
@@ -16,75 +17,68 @@ const genres = [
   { name: "Afrobeats", count: 42, description: "Vibrant African-influenced rhythms" },
 ];
 
-const mockBeatsByGenre = {
-  trap: [
-    { id: "t1", title: "Midnight Drive", producer: "BEATVAULT", genre: "Trap", bpm: 140, price: 29.99, mood: "Dark", isExclusive: true },
-    { id: "t2", title: "Gunsmoke", producer: "BEATVAULT", genre: "Trap", bpm: 150, price: 27.99, mood: "Aggressive" },
-    { id: "t3", title: "Night Vision", producer: "BEATVAULT", genre: "Trap", bpm: 145, price: 24.99, mood: "Dark" },
-    { id: "t4", title: "Money Talk", producer: "BEATVAULT", genre: "Trap", bpm: 138, price: 32.99, mood: "Energetic" },
-  ],
-};
-
 const GenresPage = () => {
   const [searchParams] = useSearchParams();
   const selectedGenre = searchParams.get("genre");
-  const [playingId, setPlayingId] = useState<string | null>(null);
+  const { playBeat, isCurrentBeat, isPlaying } = usePlayer();
 
-  const genreBeats = selectedGenre 
-    ? mockBeatsByGenre[selectedGenre.toLowerCase() as keyof typeof mockBeatsByGenre] || mockBeatsByGenre.trap
-    : null;
+  const genreBeats = selectedGenre
+    ? mockBeats.filter((b) => b.genre.toLowerCase() === selectedGenre.toLowerCase())
+    : [];
 
   return (
-    <div className="min-h-screen bg-background">
-      <VerticalNav />
-      
-      <main className="ml-64 p-8">
+    <PageLayout>
+      <div className="px-4 sm:px-8 py-6 sm:py-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-12">
+          <div className="mb-8 sm:mb-12">
             <span className="text-primary text-sm font-semibold uppercase tracking-wider">
               Explore
             </span>
-            <h1 className="font-display text-4xl font-bold text-foreground mt-2">
+            <h1 className="font-display text-3xl sm:text-4xl font-bold text-foreground mt-2">
               {selectedGenre ? `${selectedGenre} Beats` : "Browse by Genre"}
             </h1>
             <p className="text-foreground-muted mt-4 max-w-2xl">
-              {selectedGenre 
-                ? genres.find(g => g.name.toLowerCase() === selectedGenre.toLowerCase())?.description
+              {selectedGenre
+                ? genres.find((g) => g.name.toLowerCase() === selectedGenre.toLowerCase())?.description
                 : "Find the perfect sound for your next project. From hard-hitting trap to smooth R&B."}
             </p>
           </div>
 
           {selectedGenre ? (
-            /* Beat Grid for Selected Genre */
             <div>
               <Link to="/genres">
                 <Button variant="ghost" className="mb-6">
                   ← Back to all genres
                 </Button>
               </Link>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {genreBeats?.map((beat) => (
-                  <BeatCard
-                    key={beat.id}
-                    beat={beat}
-                    onPlay={() => setPlayingId(playingId === beat.id ? null : beat.id)}
-                    isCurrentlyPlaying={playingId === beat.id}
-                  />
-                ))}
-              </div>
+              {genreBeats.length === 0 ? (
+                <div className="glass-panel p-12 sm:p-16 text-center">
+                  <p className="text-foreground-muted">No beats found in this genre</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                  {genreBeats.map((beat) => (
+                    <BeatCard
+                      key={beat.id}
+                      beat={beat}
+                      onPlay={(b) => playBeat(b, genreBeats)}
+                      isCurrentlyPlaying={isPlaying && isCurrentBeat(beat.id)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
-            /* Genre Grid */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {genres.map((genre, index) => (
                 <Link
                   key={genre.name}
                   to={`/genres?genre=${genre.name.toLowerCase()}`}
-                  className="group glass-panel p-8 transition-all duration-300 hover:border-primary/30"
-                  style={{ 
+                  className="group glass-panel p-5 sm:p-8 transition-all duration-300 hover:border-primary/30"
+                  style={{
                     animation: `fade-up 0.6s ease-out ${index * 0.05}s forwards`,
-                    opacity: 0 
+                    opacity: 0,
                   }}
                 >
                   <div className="flex items-start justify-between mb-4">
@@ -94,17 +88,17 @@ const GenresPage = () => {
                       </span>
                     </div>
                     <span className="text-sm text-foreground-subtle">
-                      {genre.count} beats
+                      {mockBeats.filter((b) => b.genre === genre.name).length || genre.count} beats
                     </span>
                   </div>
-                  
-                  <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+
+                  <h3 className="font-display text-lg sm:text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                     {genre.name}
                   </h3>
                   <p className="text-sm text-foreground-muted mb-4">
                     {genre.description}
                   </p>
-                  
+
                   <div className="flex items-center text-foreground-muted group-hover:text-primary transition-colors">
                     <span className="text-sm font-medium">Explore</span>
                     <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
@@ -114,8 +108,8 @@ const GenresPage = () => {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </PageLayout>
   );
 };
 

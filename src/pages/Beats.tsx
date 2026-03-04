@@ -1,149 +1,87 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import BeatCard from "@/components/beats/BeatCard";
 import BeatFilters from "@/components/beats/BeatFilters";
-import MiniPlayer from "@/components/player/MiniPlayer";
-import VerticalNav from "@/components/layout/VerticalNav";
+import PageLayout from "@/components/layout/PageLayout";
+import { mockBeats } from "@/lib/mockData";
+import { usePlayer } from "@/context/PlayerContext";
 
-// Import cover images
-import cover1 from "@/assets/covers/cover-1.jpg";
-import cover2 from "@/assets/covers/cover-2.jpg";
-import cover3 from "@/assets/covers/cover-3.jpg";
-import cover4 from "@/assets/covers/cover-4.jpg";
-
-// Mock data for beats
-const mockBeats = [
-  {
-    id: "1",
-    title: "Midnight Drive",
-    producer: "BEATVAULT",
-    genre: "Trap",
-    bpm: 140,
-    price: 29.99,
-    mood: "Dark",
-    isExclusive: true,
-    coverUrl: cover1,
-  },
-  {
-    id: "2",
-    title: "City Lights",
-    producer: "BEATVAULT",
-    genre: "Lo-Fi",
-    bpm: 85,
-    price: 19.99,
-    mood: "Chill",
-    coverUrl: cover2,
-  },
-  {
-    id: "3",
-    title: "War Ready",
-    producer: "BEATVAULT",
-    genre: "Drill",
-    bpm: 145,
-    price: 34.99,
-    mood: "Aggressive",
-    coverUrl: cover3,
-  },
-  {
-    id: "4",
-    title: "Purple Haze",
-    producer: "BEATVAULT",
-    genre: "Hip-Hop",
-    bpm: 92,
-    price: 24.99,
-    mood: "Melodic",
-    coverUrl: cover4,
-  },
-  {
-    id: "5",
-    title: "Neon Dreams",
-    producer: "BEATVAULT",
-    genre: "R&B",
-    bpm: 110,
-    price: 29.99,
-    mood: "Emotional",
-    isExclusive: true,
-    coverUrl: cover1,
-  },
-  {
-    id: "6",
-    title: "Thunder",
-    producer: "BEATVAULT",
-    genre: "Cinematic",
-    bpm: 120,
-    price: 49.99,
-    mood: "Energetic",
-    isExclusive: true,
-    coverUrl: cover3,
-  },
-  {
-    id: "7",
-    title: "Smooth Operator",
-    producer: "BEATVAULT",
-    genre: "R&B",
-    bpm: 95,
-    price: 22.99,
-    mood: "Chill",
-    coverUrl: cover2,
-  },
-  {
-    id: "8",
-    title: "Gunsmoke",
-    producer: "BEATVAULT",
-    genre: "Trap",
-    bpm: 150,
-    price: 27.99,
-    mood: "Dark",
-    coverUrl: cover4,
-  },
-];
+interface FilterState {
+  search: string;
+  genre: string;
+  bpm: [number, number];
+  mood: string;
+  priceRange: [number, number];
+  licenseType: string;
+}
 
 const BeatsPage = () => {
-  const [currentBeat, setCurrentBeat] = useState(mockBeats[0]);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    search: "",
+    genre: "All Genres",
+    bpm: [60, 180],
+    mood: "All Moods",
+    priceRange: [0, 500],
+    licenseType: "All Licenses",
+  });
 
-  const handlePlay = (beat: typeof mockBeats[0]) => {
-    if (currentBeat?.id === beat.id) {
-      setIsPlaying(!isPlaying);
-    } else {
-      setCurrentBeat(beat);
-      setIsPlaying(true);
-    }
-  };
+  const { playBeat, isCurrentBeat, isPlaying } = usePlayer();
+
+  const filteredBeats = useMemo(() => {
+    return mockBeats.filter((beat) => {
+      if (
+        filters.search &&
+        !beat.title.toLowerCase().includes(filters.search.toLowerCase()) &&
+        !beat.producer.toLowerCase().includes(filters.search.toLowerCase()) &&
+        !beat.genre.toLowerCase().includes(filters.search.toLowerCase())
+      ) {
+        return false;
+      }
+      if (filters.genre !== "All Genres" && beat.genre !== filters.genre) return false;
+      if (filters.mood !== "All Moods" && beat.mood !== filters.mood) return false;
+      if (beat.bpm < filters.bpm[0] || beat.bpm > filters.bpm[1]) return false;
+      if (beat.price < filters.priceRange[0] || beat.price > filters.priceRange[1]) return false;
+      return true;
+    });
+  }, [filters]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <VerticalNav />
-      
-      <main className="ml-64 pb-24">
-        {/* Header */}
-        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
-          <div className="px-8 py-6">
-            <h1 className="font-display text-3xl font-bold text-foreground mb-6">Browse Beats</h1>
-            <BeatFilters />
-          </div>
+    <PageLayout>
+      {/* Header */}
+      <div className="sticky top-14 lg:top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
+        <div className="px-4 sm:px-8 py-4 sm:py-6">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">
+            Browse Beats
+          </h1>
+          <BeatFilters onFilterChange={setFilters} />
         </div>
+      </div>
 
-        {/* Beat Grid */}
-        <div className="px-8 py-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {mockBeats.map((beat) => (
-              <BeatCard
-                key={beat.id}
-                beat={beat}
-                onPlay={handlePlay}
-                isCurrentlyPlaying={isPlaying && currentBeat?.id === beat.id}
-              />
-            ))}
+      {/* Beat Grid */}
+      <div className="px-4 sm:px-8 py-6 sm:py-8">
+        {filteredBeats.length === 0 ? (
+          <div className="glass-panel p-12 sm:p-16 text-center">
+            <p className="text-foreground-muted text-lg mb-2">No beats match your filters</p>
+            <p className="text-foreground-subtle text-sm">Try adjusting your search or filters</p>
           </div>
-        </div>
-      </main>
-
-      {/* Mini Player */}
-      <MiniPlayer
-        currentBeat={currentBeat}
-        isVisible={true}
-      />
-    </div>
+        ) : (
+          <>
+            <p className="text-foreground-muted text-sm mb-6">
+              {filteredBeats.length} {filteredBeats.length === 1 ? "beat" : "beats"} found
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              {filteredBeats.map((beat) => (
+                <BeatCard
+                  key={beat.id}
+                  beat={beat}
+                  onPlay={(b) => playBeat(b, filteredBeats)}
+                  isCurrentlyPlaying={isPlaying && isCurrentBeat(beat.id)}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </PageLayout>
   );
 };
 

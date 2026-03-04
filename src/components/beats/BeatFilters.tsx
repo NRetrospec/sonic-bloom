@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,6 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 
-interface FiltersProps {
-  onFilterChange?: (filters: FilterState) => void;
-}
-
 interface FilterState {
   search: string;
   genre: string;
@@ -24,6 +20,10 @@ interface FilterState {
   mood: string;
   priceRange: [number, number];
   licenseType: string;
+}
+
+interface FiltersProps {
+  onFilterChange?: (filters: FilterState) => void;
 }
 
 const genres = [
@@ -60,12 +60,18 @@ const BeatFilters = ({ onFilterChange }: FiltersProps) => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
   const [licenseType, setLicenseType] = useState("All Licenses");
 
+  // Notify parent whenever any filter changes
+  useEffect(() => {
+    onFilterChange?.({ search, genre, bpm, mood, priceRange, licenseType });
+  }, [search, genre, bpm, mood, priceRange, licenseType]);
+
   const activeFiltersCount = [
     genre !== "All Genres",
     mood !== "All Moods",
     licenseType !== "All Licenses",
     bpm[0] !== 60 || bpm[1] !== 180,
     priceRange[0] !== 0 || priceRange[1] !== 500,
+    search !== "",
   ].filter(Boolean).length;
 
   const clearFilters = () => {
@@ -103,11 +109,17 @@ const BeatFilters = ({ onFilterChange }: FiltersProps) => {
             </Badge>
           )}
         </Button>
+        {activeFiltersCount > 0 && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-foreground-muted">
+            <X className="w-4 h-4 mr-1" />
+            Clear
+          </Button>
+        )}
       </div>
 
       {/* Expanded Filters */}
       {isExpanded && (
-        <div className="glass-panel p-6 space-y-6">
+        <div className="glass-panel p-4 sm:p-6 space-y-4 sm:space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-foreground">Filters</h3>
             {activeFiltersCount > 0 && (
@@ -118,7 +130,7 @@ const BeatFilters = ({ onFilterChange }: FiltersProps) => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Genre */}
             <div className="space-y-2">
               <label className="text-sm text-foreground-muted">Genre</label>
@@ -173,7 +185,7 @@ const BeatFilters = ({ onFilterChange }: FiltersProps) => {
             {/* BPM Range */}
             <div className="space-y-2">
               <label className="text-sm text-foreground-muted">
-                BPM: {bpm[0]} - {bpm[1]}
+                BPM: {bpm[0]} – {bpm[1]}
               </label>
               <div className="pt-2">
                 <Slider
@@ -184,6 +196,22 @@ const BeatFilters = ({ onFilterChange }: FiltersProps) => {
                   step={5}
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Price Range */}
+          <div className="space-y-2">
+            <label className="text-sm text-foreground-muted">
+              Price: ${priceRange[0]} – ${priceRange[1]}
+            </label>
+            <div className="max-w-xs">
+              <Slider
+                value={priceRange}
+                onValueChange={(value) => setPriceRange(value as [number, number])}
+                min={0}
+                max={500}
+                step={5}
+              />
             </div>
           </div>
 

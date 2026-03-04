@@ -1,32 +1,49 @@
-import { useState } from "react";
-import { Play, Pause, Heart, ShoppingCart, Tag } from "lucide-react";
+import { Play, Pause, Heart, ShoppingCart, Tag, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import WaveformAnimation from "@/components/ui/WaveformAnimation";
 import { cn } from "@/lib/utils";
-
-interface Beat {
-  id: string;
-  title: string;
-  producer: string;
-  genre: string;
-  bpm: number;
-  price: number;
-  mood: string;
-  coverUrl?: string;
-  isExclusive?: boolean;
-}
+import { Beat } from "@/lib/mockData";
+import { useCart } from "@/context/CartContext";
+import { useFavorites } from "@/context/FavoritesContext";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 
 interface BeatCardProps {
   beat: Beat;
   onPlay?: (beat: Beat) => void;
-  onAddToCart?: (beat: Beat) => void;
   isCurrentlyPlaying?: boolean;
 }
 
-const BeatCard = ({ beat, onPlay, onAddToCart, isCurrentlyPlaying = false }: BeatCardProps) => {
+const BeatCard = ({ beat, onPlay, isCurrentlyPlaying = false }: BeatCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  const [addedFlash, setAddedFlash] = useState(false);
+  const { addToCart, isInCart } = useCart();
+  const { toggleFavorite, isFavorite } = useFavorites();
+
+  const liked = isFavorite(beat.id);
+  const inCart = isInCart(beat.id);
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (inCart) return;
+    addToCart(beat);
+    setAddedFlash(true);
+    setTimeout(() => setAddedFlash(false), 1500);
+  };
+
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFavorite(beat);
+  };
+
+  const handlePlay = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onPlay?.(beat);
+  };
 
   return (
     <div
@@ -36,12 +53,14 @@ const BeatCard = ({ beat, onPlay, onAddToCart, isCurrentlyPlaying = false }: Bea
     >
       {/* Cover Art */}
       <div className="relative aspect-square rounded-lg overflow-hidden mb-4">
-        {beat.coverUrl ? (
-          <img src={beat.coverUrl} alt={beat.title} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/30 via-secondary to-background-glass" />
-        )}
-        
+        <Link to={`/beats/${beat.id}`}>
+          {beat.coverUrl ? (
+            <img src={beat.coverUrl} alt={beat.title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-primary/30 via-secondary to-background-glass" />
+          )}
+        </Link>
+
         {/* Overlay on Hover */}
         <div
           className={cn(
@@ -52,7 +71,7 @@ const BeatCard = ({ beat, onPlay, onAddToCart, isCurrentlyPlaying = false }: Bea
           <Button
             variant="icon"
             size="icon"
-            onClick={() => onPlay?.(beat)}
+            onClick={handlePlay}
             className="w-16 h-16 bg-primary hover:bg-primary-hover text-primary-foreground rounded-full shadow-lg"
           >
             {isCurrentlyPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-1" />}
@@ -70,13 +89,13 @@ const BeatCard = ({ beat, onPlay, onAddToCart, isCurrentlyPlaying = false }: Bea
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setIsLiked(!isLiked)}
+          onClick={handleToggleFavorite}
           className={cn(
             "absolute top-3 right-3 bg-background/50 backdrop-blur-sm hover:bg-background/70",
-            isLiked && "text-primary"
+            liked && "text-primary"
           )}
         >
-          <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
+          <Heart className={cn("w-4 h-4", liked && "fill-current")} />
         </Button>
       </div>
 
@@ -89,7 +108,9 @@ const BeatCard = ({ beat, onPlay, onAddToCart, isCurrentlyPlaying = false }: Bea
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground truncate">{beat.title}</h3>
+            <Link to={`/beats/${beat.id}`} className="hover:text-primary transition-colors">
+              <h3 className="font-semibold text-foreground truncate">{beat.title}</h3>
+            </Link>
             <p className="text-sm text-foreground-muted truncate">{beat.producer}</p>
           </div>
           <div className="text-right shrink-0">
@@ -115,15 +136,27 @@ const BeatCard = ({ beat, onPlay, onAddToCart, isCurrentlyPlaying = false }: Bea
           <Button
             variant="default"
             size="sm"
-            className="flex-1"
-            onClick={() => onAddToCart?.(beat)}
+            className={cn("flex-1", inCart && "bg-secondary text-foreground hover:bg-secondary")}
+            onClick={handleAddToCart}
+            disabled={inCart}
           >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            Add to Cart
+            {inCart || addedFlash ? (
+              <>
+                <Check className="w-4 h-4 mr-2" />
+                {addedFlash ? "Added!" : "In Cart"}
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                Add to Cart
+              </>
+            )}
           </Button>
-          <Button variant="outline" size="sm">
-            <Tag className="w-4 h-4" />
-          </Button>
+          <Link to={`/beats/${beat.id}`}>
+            <Button variant="outline" size="sm">
+              <Tag className="w-4 h-4" />
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

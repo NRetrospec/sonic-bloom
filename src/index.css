@@ -113,8 +113,13 @@
 
   .beat-card:hover {
     @apply border-primary/30;
-    transform: scale(1.02);
     box-shadow: 0 0 30px rgba(220, 38, 38, 0.1);
+  }
+
+  @media (hover: hover) {
+    .beat-card:hover {
+      transform: scale(1.02);
+    }
   }
 
   /* Scrollbar styling */

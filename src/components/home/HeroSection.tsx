@@ -32,25 +32,25 @@ const HeroSection = () => {
       {/* Overlay Gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-      
+
       {/* Red Glow Effect */}
       <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-primary/20 blur-[120px] rounded-full" />
 
       {/* Content */}
-      <div className="relative h-full flex items-center pl-8 pr-12">
-        <div className="max-w-2xl space-y-8">
+      <div className="relative h-full flex items-center px-4 sm:px-8 lg:pl-8 lg:pr-12">
+        <div className="max-w-2xl space-y-6 sm:space-y-8 w-full">
           {/* Animated Badge */}
-          <div 
+          <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 backdrop-blur-sm border border-border"
             style={{ animation: "fade-up 0.6s ease-out forwards" }}
           >
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-sm text-muted-foreground">New beats dropping weekly</span>
+            <span className="text-xs sm:text-sm text-muted-foreground">New beats dropping weekly</span>
           </div>
 
           {/* Heading */}
-          <h1 
-            className="font-display text-6xl lg:text-7xl font-bold leading-tight"
+          <h1
+            className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight"
             style={{ animation: "fade-up 0.6s ease-out 0.1s forwards", opacity: 0 }}
           >
             <span className="text-foreground">Where Sound</span>
@@ -59,17 +59,17 @@ const HeroSection = () => {
           </h1>
 
           {/* Description */}
-          <p 
-            className="text-xl text-muted-foreground max-w-lg leading-relaxed"
+          <p
+            className="text-base sm:text-xl text-muted-foreground max-w-lg leading-relaxed"
             style={{ animation: "fade-up 0.6s ease-out 0.2s forwards", opacity: 0 }}
           >
-            Discover premium beats crafted for artists who demand excellence. 
+            Discover premium beats crafted for artists who demand excellence.
             From hard-hitting trap to cinematic scores.
           </p>
 
           {/* CTA Buttons */}
-          <div 
-            className="flex items-center gap-4"
+          <div
+            className="flex items-center gap-3 sm:gap-4 flex-wrap"
             style={{ animation: "fade-up 0.6s ease-out 0.3s forwards", opacity: 0 }}
           >
             <Link to="/beats">
@@ -85,30 +85,30 @@ const HeroSection = () => {
           </div>
 
           {/* Stats */}
-          <div 
-            className="flex items-center gap-12 pt-8"
+          <div
+            className="flex items-center gap-6 sm:gap-10 lg:gap-12 pt-4 sm:pt-8"
             style={{ animation: "fade-up 0.6s ease-out 0.4s forwards", opacity: 0 }}
           >
             <div>
-              <div className="text-3xl font-display font-bold text-foreground">500+</div>
-              <div className="text-sm text-muted-foreground">Premium Beats</div>
+              <div className="text-2xl sm:text-3xl font-display font-bold text-foreground">500+</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Premium Beats</div>
             </div>
-            <div className="w-px h-12 bg-border" />
+            <div className="w-px h-10 sm:h-12 bg-border" />
             <div>
-              <div className="text-3xl font-display font-bold text-foreground">10K+</div>
-              <div className="text-sm text-muted-foreground">Artists</div>
+              <div className="text-2xl sm:text-3xl font-display font-bold text-foreground">10K+</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Artists</div>
             </div>
-            <div className="w-px h-12 bg-border" />
+            <div className="w-px h-10 sm:h-12 bg-border" />
             <div>
-              <div className="text-3xl font-display font-bold text-foreground">24/7</div>
-              <div className="text-sm text-muted-foreground">Support</div>
+              <div className="text-2xl sm:text-3xl font-display font-bold text-foreground">24/7</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Support</div>
             </div>
           </div>
         </div>
 
-        {/* Floating Waveform Panel */}
-        <div 
-          className="absolute right-12 bottom-32 glass-panel p-6 w-80"
+        {/* Floating Waveform Panel — desktop/laptop only */}
+        <div
+          className="hidden lg:block absolute right-12 bottom-32 glass-panel p-6 w-72 xl:w-80"
           style={{ animation: "slide-in-left 0.8s ease-out 0.5s forwards", opacity: 0 }}
         >
           <div className="flex items-center justify-between mb-4">
